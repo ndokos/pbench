@@ -82,7 +82,7 @@ function testpcp {
     echo "Testing pcp-postprocess under sample $1 ..."
     mkdir /tmp/GenData/$1
     cp -r samples/$1/* /tmp/GenData/$1
-    _TEST_ALTERNATE_TOOLS_LIBRARY=$(pwd) _TEST_ALTERNATE_BENCH_LIBRARY=$(pwd)/../../bench-scripts/postprocess \
+    PATH=$(pwd)/mock-bin:$PATH _TEST_ALTERNATE_TOOLS_LIBRARY=$(pwd) _TEST_ALTERNATE_BENCH_LIBRARY=$(pwd)/../../bench-scripts/postprocess \
         ./pcp-postprocess /tmp/GenData/$1 > /tmp/GenData/$1/stdout 2> /tmp/GenData/$1/stderr
     remove_sample_data $1
     diff -cr gold/$1/ /tmp/GenData/$1

@@ -8,7 +8,6 @@ before_install:
  - sudo apt-get update
 install:
  - sudo apt-get update
- - sudo apt-get install pcp pcp-gui
  - sudo apt-get install python python-pip bc libjson-perl realpath
  - sudo pip install configtools elasticsearch
  - sudo apt-get install python-software-properties
