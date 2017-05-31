@@ -12,6 +12,7 @@ pbench_bin="`cd ${script_path}/..; /bin/pwd`"
 
 benchmark_rpm=$script_name
 benchmark="fio"
+export benchmark_run_dir=""
 # allow unit tests to override
 if [[ -z "$benchmark_bin" ]]; then
 	benchmark_bin=/usr/local/bin/$benchmark
@@ -372,7 +373,7 @@ function fio_process_options() {
 		esac
 	done
 	if [ "$postprocess_only" = "n" ]; then
-		benchmark_fullname="${benchmark}_${config}_${date}"
+		benchmark_fullname="${benchmark}_${config}_${date_suffix}"
 		benchmark_run_dir="$pbench_run/${benchmark_fullname}"
 	else
 		if [ -z "$run_dir" ]; then
@@ -885,7 +886,9 @@ fi
 mkdir -p $benchmark_run_dir
 export benchmark config
 pbench-collect-sysinfo --group=$tool_group --dir=$benchmark_run_dir beg
+pbench-metadata-log --group=$tool_group --dir=$benchmark_run_dir beg
 fio_run_benchmark
+pbench-metadata-log --group=$tool_group --dir=$benchmark_run_dir end
 pbench-collect-sysinfo --group=$tool_group --dir=$benchmark_run_dir end
 fio_print_summary
 

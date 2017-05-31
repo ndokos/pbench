@@ -100,7 +100,7 @@ fi
 verify_tool_group $tool_group
 iteration="1" # there can be only 1 iteration for user-benchmark
 benchmark_bin="$@"
-benchmark_fullname="${benchmark}_${config}_${date}"
+benchmark_fullname="${benchmark}_${config}_${date_suffix}"
 benchmark_run_dir="$pbench_run/${benchmark_fullname}"
 benchmark_iterations="$pbench_tmp/${benchmark_fullname}.iterations"
 # make the run dir available to the user script
@@ -130,5 +130,6 @@ echo $iteration >> $benchmark_iterations
 $benchmark_bin 2>&1 | tee $benchmark_results_dir/result.txt
 pbench-stop-tools --group=$tool_group --iteration=$iteration --dir=$benchmark_results_dir
 pbench-postprocess-tools --group=$tool_group --iteration=$iteration --dir=$benchmark_results_dir
+pbench-metadata-log --group=$tool_group --dir=$benchmark_run_dir end
 pbench-collect-sysinfo --group=$tool_group --dir=$benchmark_run_dir --sysinfo=$sysinfo end
 rmdir $benchmark_results_dir/.running
