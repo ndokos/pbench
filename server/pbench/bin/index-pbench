@@ -24,7 +24,7 @@ try:
 except ImportError:
     from elasticsearch import VERSION as es_VERSION, Elasticsearch
 
-from pbench import tstos, es_index, es_put_template
+from pbench.esbulk import tstos, es_index, es_put_template
 
 
 _VERSION_ = "0.2.0.0"
@@ -234,7 +234,7 @@ def convert_to_float(d):
     if type(d) == type({}) and len(d) != 0:
         for k1 in d:
             convert_to_float(d[k1])
-    elif type(d) == type([]) and len(d) != 0:
+    elif (type(d) == type([]) or type(d) == type(())) and len(d) != 0:
         # for {date, value} timeseries, convert the value but leave the date alone
         if type(d[0]) == type({}) and set(d[0].keys()).issuperset(set(['date', 'value'])):
             for i in range(0, len(d)):
@@ -244,7 +244,6 @@ def convert_to_float(d):
                 convert_to_float(d[i])
     else:
         pass
-
 
 class ResultData(object):
     def __init__(self, ptb, experiment, opctx):
@@ -261,9 +260,14 @@ class ResultData(object):
             self.json_files = ResultData.get_json_files(ptb)
         except KeyError:
             self.json_files = None
+        print(len(self.json_files))
 
     def _make_source_json(self):
         for df in self.json_files:
+            # temporary: skip all but the sample result.json files
+            if not os.path.basename(os.path.dirname(df['path'])).startswith('sample'):
+                continue
+
             try:
                 # Read it once to generate the source_id
                 with open(os.path.join(self.ptb.extracted_root, df['path']), "rb") as fp:
@@ -287,15 +291,19 @@ class ResultData(object):
                 self.counters['not_valid_json_file'] += 1
                 continue
 
-            convert_to_float(results)
+            # for each file, generate a sequence of documents and yield each one
+            for md, ts, src in gen_sources(results):
+                # each generated result is a document, accompanied by a timestamp
+                # and some metadata.
+                source = _dict_const()
+                source['@metadata'] = self.run_metadata
+                source['@metadata'].update(md)
+                # XXX - FIX
+                source['@timestamp'] = ts
+                source['results'] = src
 
-            source = _dict_const()
-            source['results'] = results
-            source['@metadata'] = self.run_metadata
-            ts_str = self.run_metadata['runtstamp']
-            source['@timestamp'] = ts_str
+                yield source, source_id
 
-            yield source, source_id
         return
 
     def make_source(self):
@@ -345,6 +353,168 @@ def mk_result_data_actions(ptb, options, idx_prefix, idx_patterns, opctx):
         yield action
     return
 
+
+    @staticmethod
+    def gen_result(ts):
+        """ ts is a list of tuples: singlets in the throughput case, doublets in the latency case.
+        """
+        for datum in ts:
+            yield datum
+        return
+
+    @staticmethod
+    def gen_sources(results):
+        # There should always be a 'parameters' block.
+        # There is no reason for this to be an array, but it is: we
+        # just pick the 0^th (and only element) as the metadata for
+        # the document.
+        md = results['parameters']['benchmark'][0]
+
+        # now we split out the timeseries from the latency and throughput components
+        tseries = []
+        data = []
+
+        latency = False
+        throughput = False
+        if 'latency' in results:
+            latency = True
+            # the list has elements for "all" and for each client/server pair used in the test.
+            for i in range(len(results['latency']['usec'])):
+                ts = []
+                ds = []
+                # the i^th entry in latency.usec corresponds to the i^th entry
+                # in throughput.trans_sec (same client/server pair)
+                ts.extend(zip(
+                    results['latency']['usec'][i]['timeseries'].copy(),
+                    results['throughput']['trans_sec'][i]['timeseries'].copy()))
+                tseries.append(ts)
+                convert_to_float(tseries)
+                # now, that we've saved them, delete the timeseries from the original dict
+                del results['latency']['usec'][i]['timeseries']
+                del results['throughput']['trans_sec'][i]['timeseries']
+                # at this point, what's left in results['latency'] is this:
+                # {   'usec': [   {   'client_hostname': 'all',
+                #                     'description': 'Average elapsed time spanning: client '
+                #                                    'sending, server accepting/sending, and '
+                #                                    'client receiving 1 message, over a 1 '
+                #                                    'second window',
+                #                     'role': 'aggregate',
+                #                     'server_hostname': 'all',
+                #                     'server_port': 'all',
+                #                     'uid': 'client_hostname:%client_hostname%-server_hostname:%server_hostname%-server_port:%server_port%',
+                #                     'value': 58.2998258898499},
+                #                 {   'client_hostname': '40.40.20.103',
+                #                     'description': 'Average elapsed time spanning: client '
+                #                                    'sending, server accepting/sending, and '
+                #                                    'client receiving 1 message, over a 1 '
+                #                                    'second window',
+                #                     'role': 'client',
+                #                     'server_hostname': '40.40.20.71',
+                #                     'server_port': '20010',
+                #                     'uid': 'client_hostname:%client_hostname%-server_hostname:%server_hostname%-server_port:%server_port%',
+                #                     'value': 58.2998258898499}]}
+
+                # The value here seems to be the mean of the values in the timeseries.
+
+                ds = (results['latency']['usec'][i],
+                      results['throughput']['trans_sec'][i])
+                data.append(ds)
+            # print("data (len, type, value) = ", len(data), type(data))
+            # pp.pprint(data)
+        elif 'throughput' in results:
+            throughput = True
+            for i in range(len(results['throughput']['Gb_sec'])):
+                ts = []
+                ds = []
+                ts.extend(zip(results['throughput']['Gb_sec'][i]['timeseries'].copy()))
+                tseries.append(ts)
+                convert_to_float(tseries)
+                del results['throughput']['Gb_sec'][i]['timeseries']
+                ds = (results['throughput']['Gb_sec'][i],)
+                data.append(ds)
+            # print("data (len, type) = ", len(data), type(data))
+            # pp.pprint(data)
+        else:
+            # impossible?
+            return
+
+        # We now repackage everything in ES-indexable form:
+        # Each document will have metadata, a single timestamp, and the data associated with that
+        # timestamp, plus the specific metadata for that data (e.g the client/server pair)
+
+        # pp.pprint(md)
+        # pp.pprint(results['latency'])
+        # pp.pprint(results['throughput'])
+        # for ts in tseries:
+        #     convert_to_float(ts)
+        #     for i in range(10):
+        #         print(ts[i])
+        #     print()
+        # return
+
+        # print(len(tseries))
+        #import pdb; pdb.set_trace()
+
+        for i in range(len(tseries)):
+            if latency:
+                dat = {
+                    "latency_desc": data[i][0],
+                    "throughput_desc": data[i][1]
+                }
+            elif throughput:
+                dat = {"throughput_desc": data[i][0]}
+            else:
+                # impossible?
+                return
+
+            for res in gen_result(tseries[i]):
+                # each generated result is a document, accompanied by a timestamp
+                # and some metadata.
+
+                d = dat.copy()
+                if latency:
+                    # They should be in sync.
+                    lat, xput = res
+                    assert lat['date'] == xput['date']
+                    d.update({"latency_value": lat['value'], "throughput_value": xput['value']})
+                elif throughput:
+                    xput = res[0]
+                    d.update({"throughput_value": xput['value']})
+                else:
+                    # impossible
+                    return
+
+                ts = xput['date']
+
+                yield md, ts, d
+
+        return 0
+
+
+def mk_result_data_actions(ptb, options, idx_prefix, idx_patterns, opctx):
+
+    experiment = ptb.mdconf.get("pbench", "name")
+    rd = ResultData(ptb, experiment, opctx)
+    if not rd:
+        return
+    sources = rd.make_source()
+    if not sources:
+        return
+    for source, source_id in sources:
+        # XXX - FIX
+        year, month, day = source['@timestamp'].split('T', 1)[0].split('-')[0:3]
+        action = _dict_const(
+            _op_type=_op_type,
+            _index= idx_patterns["result-data"]["template"].format(prefix=idx_prefix,
+                                                                   year=year,
+                                                                   month=month,
+                                                                   day=day),
+            _type="pbench-result-data",
+            _id=source_id,
+            _source=source
+        )
+        yield action
+    return
 
 ###########################################################################
 # Tool data routines
@@ -1090,7 +1260,7 @@ class ToolData(object):
         return
 
     def make_source(self):
-        """Simple jump method to pick the write source generator based on the
+        """Simple jump method to pick the correct source generator based on the
         handler's prospectus."""
         if not self.files:
             # If we do not have any data files for this tool, ignore it.
