@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3 -u
 # -*- mode: python -*-
 
 # prereqs:
@@ -14,6 +14,9 @@ from urllib3 import Timeout
 from datetime import datetime, timedelta
 from collections import Counter
 from argparse import ArgumentParser
+
+import pprint
+pp = pprint.PrettyPrinter(indent=4)
 
 try:
     from configparser import SafeConfigParser, Error as ConfigParserError, NoSectionError, NoOptionError
@@ -75,6 +78,8 @@ class UnsupportedTarballFormat(Exception):
 class SosreportHostname(Exception):
     pass
 
+class BadResultData(Exception):
+    pass
 
 _ts_start = None
 def ts(msg, newline=False):
@@ -253,6 +258,23 @@ class ResultData(object):
             ("experiment", experiment)
         ])
         self.ptb = ptb
+
+        # XXX - copied from ToolData - need DRY
+        try:
+            self.start_run_ts = datetime.strptime(ptb.start_run, "%Y-%m-%dT%H:%M:%S.%f")
+        except ValueError:
+            try:
+                self.start_run_ts = datetime.strptime(ptb.start_run, "%Y-%m-%dT%H:%M:%S")
+            except ValueError:
+                self.start_run_ts = None
+        try:
+            self.end_run_ts = datetime.strptime(ptb.end_run, "%Y-%m-%dT%H:%M:%S.%f")
+        except ValueError:
+            try:
+                self.end_run_ts = datetime.strptime(ptb.end_run, "%Y-%m-%dT%H:%M:%S")
+            except ValueError:
+                self.end_run_ts = None
+
         self.counters = Counter()
         opctx.append(_dict_const(object="ResultData", counters=self.counters))
         self.json_files = None
@@ -260,12 +282,12 @@ class ResultData(object):
             self.json_files = ResultData.get_json_files(ptb)
         except KeyError:
             self.json_files = None
-        print(len(self.json_files))
 
     def _make_source_json(self):
         for df in self.json_files:
             # temporary: skip all but the sample result.json files
-            if not os.path.basename(os.path.dirname(df['path'])).startswith('sample'):
+            if not os.path.basename(os.path.dirname(df['path']
+            )).startswith('sample'):
                 continue
 
             try:
@@ -291,14 +313,24 @@ class ResultData(object):
                 self.counters['not_valid_json_file'] += 1
                 continue
 
+            # There should always be a 'parameters' block.
+            # There is no reason for this to be an array, but it is: we
+            # just pick the 0^th (and only element) as the metadata for
+            # the document.
+            assert len(results['parameters']['benchmark'])
+            md = results['parameters']['benchmark'][0]
+
+            benchmark = md['benchmark_name']
             # for each file, generate a sequence of documents and yield each one
-            for md, ts, src in gen_sources(results):
+            for ts, src in ResultData.gen_sample_sources(results, benchmark):
                 # each generated result is a document, accompanied by a timestamp
                 # and some metadata.
                 source = _dict_const()
                 source['@metadata'] = self.run_metadata
                 source['@metadata'].update(md)
-                # XXX - FIX
+
+                # XXX ASSUMPTION: the timestamps we get from the result data are
+                # "milliseconds since epoch" and they are are *assumed* to be UTC.
                 source['@timestamp'] = ts
                 source['results'] = src
 
@@ -307,8 +339,11 @@ class ResultData(object):
         return
 
     def make_source(self):
-        """Simple jump method to pick the write source generator based on the
-        handler's prospectus."""
+        """
+        If we ever decide we need to process anything other than JSON files, this
+        is going to become a jump method, similar to ToolData.make_source().
+        ATM, we only handle JSON files.
+        """
         if not self.json_files:
             # If we do not have any json files for this experiment, ignore it.
             return None
@@ -329,166 +364,88 @@ class ResultData(object):
             datafiles.append(datafile)
         return datafiles
 
-def mk_result_data_actions(ptb, options, idx_prefix, idx_patterns, opctx):
-
-    experiment = ptb.mdconf.get("pbench", "name")
-    rd = ResultData(ptb, experiment, opctx)
-    if not rd:
-        return
-    sources = rd.make_source()
-    if not sources:
-        return
-    for source, source_id in sources:
-        year, month, day = source['@timestamp'].split('T', 1)[0].split('-')[0:3]
-        action = _dict_const(
-            _op_type=_op_type,
-            _index= idx_patterns["result-data"]["template"].format(prefix=idx_prefix,
-                                                                   year=year,
-                                                                   month=month,
-                                                                   day=day),
-            _type="pbench-result-data",
-            _id=source_id,
-            _source=source
-        )
-        yield action
-    return
-
+    @staticmethod
+    def expand_template(templ, d):
+        return templ
 
     @staticmethod
-    def gen_result(ts):
-        """ ts is a list of tuples: singlets in the throughput case, doublets in the latency case.
-        """
-        for datum in ts:
-            yield datum
-        return
+    def make_datum_wrapper(templ):
+        # make a shallow copy
+        d = templ.copy()
+        del d['timeseries']
+        # construct the uid from the template and the values in d
+        # and replace the template with the result
+        d['uid'] = ResultData.expand_template(d['uid'], d)
+        return d
 
     @staticmethod
-    def gen_sources(results):
-        # There should always be a 'parameters' block.
-        # There is no reason for this to be an array, but it is: we
-        # just pick the 0^th (and only element) as the metadata for
-        # the document.
-        md = results['parameters']['benchmark'][0]
+    def gen_sample_sources(results, benchmark):
 
-        # now we split out the timeseries from the latency and throughput components
-        tseries = []
-        data = []
+        # sample results is a dict with either two or three (top-level) entries:
+        # latency results have three entries: parameters.benchmark, latency.usec, throughput.trans_sec.
+        # throughput results have two entries: parameters.benchmark, throughput.Gb_sec.
+        # All entries are lists, but paremeters.benchmark is a one-element list, whereas the other lists
+        # may have multiple elements, one for a cumulative entry ("all" clients/servers) and one for each
+        # pair of client/server in the experiment (at least for uperf - fio is TBD).
 
-        latency = False
-        throughput = False
         if 'latency' in results:
-            latency = True
-            # the list has elements for "all" and for each client/server pair used in the test.
-            for i in range(len(results['latency']['usec'])):
-                ts = []
-                ds = []
-                # the i^th entry in latency.usec corresponds to the i^th entry
-                # in throughput.trans_sec (same client/server pair)
-                ts.extend(zip(
-                    results['latency']['usec'][i]['timeseries'].copy(),
-                    results['throughput']['trans_sec'][i]['timeseries'].copy()))
-                tseries.append(ts)
-                convert_to_float(tseries)
-                # now, that we've saved them, delete the timeseries from the original dict
-                del results['latency']['usec'][i]['timeseries']
-                del results['throughput']['trans_sec'][i]['timeseries']
-                # at this point, what's left in results['latency'] is this:
-                # {   'usec': [   {   'client_hostname': 'all',
-                #                     'description': 'Average elapsed time spanning: client '
-                #                                    'sending, server accepting/sending, and '
-                #                                    'client receiving 1 message, over a 1 '
-                #                                    'second window',
-                #                     'role': 'aggregate',
-                #                     'server_hostname': 'all',
-                #                     'server_port': 'all',
-                #                     'uid': 'client_hostname:%client_hostname%-server_hostname:%server_hostname%-server_port:%server_port%',
-                #                     'value': 58.2998258898499},
-                #                 {   'client_hostname': '40.40.20.103',
-                #                     'description': 'Average elapsed time spanning: client '
-                #                                    'sending, server accepting/sending, and '
-                #                                    'client receiving 1 message, over a 1 '
-                #                                    'second window',
-                #                     'role': 'client',
-                #                     'server_hostname': '40.40.20.71',
-                #                     'server_port': '20010',
-                #                     'uid': 'client_hostname:%client_hostname%-server_hostname:%server_hostname%-server_port:%server_port%',
-                #                     'value': 58.2998258898499}]}
-
-                # The value here seems to be the mean of the values in the timeseries.
-
-                ds = (results['latency']['usec'][i],
-                      results['throughput']['trans_sec'][i])
-                data.append(ds)
-            # print("data (len, type, value) = ", len(data), type(data))
-            # pp.pprint(data)
-        elif 'throughput' in results:
-            throughput = True
-            for i in range(len(results['throughput']['Gb_sec'])):
-                ts = []
-                ds = []
-                ts.extend(zip(results['throughput']['Gb_sec'][i]['timeseries'].copy()))
-                tseries.append(ts)
-                convert_to_float(tseries)
-                del results['throughput']['Gb_sec'][i]['timeseries']
-                ds = (results['throughput']['Gb_sec'][i],)
-                data.append(ds)
-            # print("data (len, type) = ", len(data), type(data))
-            # pp.pprint(data)
-        else:
-            # impossible?
-            return
-
-        # We now repackage everything in ES-indexable form:
-        # Each document will have metadata, a single timestamp, and the data associated with that
-        # timestamp, plus the specific metadata for that data (e.g the client/server pair)
-
-        # pp.pprint(md)
-        # pp.pprint(results['latency'])
-        # pp.pprint(results['throughput'])
-        # for ts in tseries:
-        #     convert_to_float(ts)
-        #     for i in range(10):
-        #         print(ts[i])
-        #     print()
-        # return
-
-        # print(len(tseries))
-        #import pdb; pdb.set_trace()
-
-        for i in range(len(tseries)):
-            if latency:
-                dat = {
-                    "latency_desc": data[i][0],
-                    "throughput_desc": data[i][1]
-                }
-            elif throughput:
-                dat = {"throughput_desc": data[i][0]}
+            # Latency results include a latency['usec'] list (or
+            # latency['clat'|'slat'|???] in the fio case) *and* a
+            # throughput['trans_sec'] list (or throughput['iops_sec']
+            # in the fio case). Each list has elements for "all" and
+            # for each client/server pair (or client?) used in the test.
+            if benchmark == "uperf":
+                latency_sublist = ['usec']
+            elif benchmark == "fio":
+                latency_sublist = ['clat', 'lat', 'slat']
             else:
-                # impossible?
                 return
-
-            for res in gen_result(tseries[i]):
-                # each generated result is a document, accompanied by a timestamp
-                # and some metadata.
-
-                d = dat.copy()
-                if latency:
-                    # They should be in sync.
-                    lat, xput = res
-                    assert lat['date'] == xput['date']
-                    d.update({"latency_value": lat['value'], "throughput_value": xput['value']})
-                elif throughput:
-                    xput = res[0]
-                    d.update({"throughput_value": xput['value']})
+            for sublist in latency_sublist:
+                latency_list = results['latency'][sublist]
+                for i in range(len(latency_list)):
+                    datum_wrapper = ResultData.make_datum_wrapper(latency_list[i])
+                    tseries = latency_list[i]['timeseries']
+                    for res in tseries:
+                        datum = datum_wrapper
+                        datum.update({"datum_value": res['value']})
+                        yield res['date'], datum
+        if 'throughput' in results:
+            # Throughput results include a throughput.Gb_sec list only
+            if benchmark == "uperf":
+                if 'trans_sec' in results['throughput']:
+                    throughput_sublist = ['trans_sec']
+                elif 'Gb_sec' in results['throughput']:
+                    throughput_sublist = ['Gb_sec']
                 else:
-                    # impossible
                     return
+            elif benchmark == "fio":
+                throughput_sublist = ['iops_sec']
+            else:
+                return
+            for sublist in throughput_sublist:
+                throughput_list = results['throughput'][sublist]
+                for i in range(len(throughput_list)):
+                    datum_wrapper = ResultData.make_datum_wrapper(throughput_list[i])
+                    tseries = throughput_list[i]['timeseries']
+                    for res in tseries:
+                        datum = datum_wrapper
+                        datum.update({"datum_value": res['value']})
+                        yield res['date'], datum
 
-                ts = xput['date']
+        return
 
-                yield md, ts, d
+    # XXX - copied from ToolData - DRY?
+    def convert_timestamp(self, orig_ts):
+        # Convert the given string timestamp, assumed to be a float in
+        # milliseconds since the epoch, to the expected string timestamp format.
+        ts_float = float(orig_ts)/1000
+        ts = datetime.utcfromtimestamp(ts_float)
+        if self.start_run_ts is not None and ts < self.start_run_ts:
+            self.counters['result_ts_before_start_run_ts'] += 1
+        if self.end_run_ts is not None and ts > self.end_run_ts:
+            self.counters['result_ts_after_end_run_ts'] += 1
+        return ts.strftime("%Y-%m-%dT%H:%M:%S.%f%z")
 
-        return 0
 
 
 def mk_result_data_actions(ptb, options, idx_prefix, idx_patterns, opctx):
@@ -497,12 +454,13 @@ def mk_result_data_actions(ptb, options, idx_prefix, idx_patterns, opctx):
     rd = ResultData(ptb, experiment, opctx)
     if not rd:
         return
+    # sources is a generator
     sources = rd.make_source()
     if not sources:
         return
     for source, source_id in sources:
-        # XXX - FIX
-        year, month, day = source['@timestamp'].split('T', 1)[0].split('-')[0:3]
+        tstamp = rd.convert_timestamp(source['@timestamp'])
+        year, month, day = tstamp.split('T', 1)[0].split('-')[0:3]
         action = _dict_const(
             _op_type=_op_type,
             _index= idx_patterns["result-data"]["template"].format(prefix=idx_prefix,
