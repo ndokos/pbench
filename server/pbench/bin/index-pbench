@@ -286,9 +286,11 @@ class ResultData(object):
     def _make_source_json(self):
         for df in self.json_files:
             # temporary: skip all but the sample result.json files
-            if not os.path.basename(os.path.dirname(df['path']
-            )).startswith('sample'):
+            sample = os.path.basename(os.path.dirname(df['path']))
+            if not sample.startswith('sample'):
                 continue
+            iteration = os.path.basename(os.path.dirname(os.path.dirname(df['path'])))
+            iter_number, iter_name = iteration.split('-', 1)[0:2]
 
             try:
                 # Read it once to generate the source_id
@@ -319,7 +321,9 @@ class ResultData(object):
             # the document.
             assert len(results['parameters']['benchmark'])
             md = results['parameters']['benchmark'][0]
-
+            md.update({"iteration_name": iter_name,
+                       "iteration_number": iter_number,
+                       "sample": sample})
             benchmark = md['benchmark_name']
             # for each file, generate a sequence of documents and yield each one
             for ts, src in ResultData.gen_sample_sources(results, benchmark):

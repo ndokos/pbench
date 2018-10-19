@@ -3,6 +3,11 @@ Template:  pbench-unittests.run
 Template:  pbench-unittests.tool-data-iostat
 Template:  pbench-unittests.tool-data-pidstat
 	done templates (end ts: 1970-01-01T00:00:00-UTC, duration: 0.00s, successes: 3, retries: 0)
+PATH:  fio_rw_2018.02.01T22.40.57/1-rw-4KiB/sample1/result.json
+ITER:  1-rw-4KiB
+SAMPLE/ITER: sample1 1 rw-4KiB
+PATH:  fio_rw_2018.02.01T22.40.57/1-rw-4KiB/result.json
+PATH:  fio_rw_2018.02.01T22.40.57/result.json
 Index:  pbench-unittests.result-data.1970-01-01 164
 Index:  pbench-unittests.run.2018-02 28
 Index:  pbench-unittests.tool-data-iostat.2018-02-01 15
@@ -512,9 +517,12 @@ len(actions) = 61
                 "benchmark_name": "fio",
                 "benchmark_version": null,
                 "experiment": "fio_rw_2018.02.01T22.40.57",
+                "iteration_name": "rw-4KiB",
+                "iteration_number": "1",
                 "primary_metric": "iops_sec",
                 "runid": "492a697c9dc7d73d1bd92c98d3fa8b2a",
                 "runtstamp": "2018-02-01T22:41:00.276959021",
+                "sample": "sample1",
                 "uid": "benchmark_name:%benchmark_name%-controller_host:%controller_host%"
             },
             "@timestamp": 1001,
@@ -540,9 +548,12 @@ len(actions) = 61
                 "benchmark_name": "fio",
                 "benchmark_version": null,
                 "experiment": "fio_rw_2018.02.01T22.40.57",
+                "iteration_name": "rw-4KiB",
+                "iteration_number": "1",
                 "primary_metric": "iops_sec",
                 "runid": "492a697c9dc7d73d1bd92c98d3fa8b2a",
                 "runtstamp": "2018-02-01T22:41:00.276959021",
+                "sample": "sample1",
                 "uid": "benchmark_name:%benchmark_name%-controller_host:%controller_host%"
             },
             "@timestamp": 1001,
@@ -568,9 +579,12 @@ len(actions) = 61
                 "benchmark_name": "fio",
                 "benchmark_version": null,
                 "experiment": "fio_rw_2018.02.01T22.40.57",
+                "iteration_name": "rw-4KiB",
+                "iteration_number": "1",
                 "primary_metric": "iops_sec",
                 "runid": "492a697c9dc7d73d1bd92c98d3fa8b2a",
                 "runtstamp": "2018-02-01T22:41:00.276959021",
+                "sample": "sample1",
                 "uid": "benchmark_name:%benchmark_name%-controller_host:%controller_host%"
             },
             "@timestamp": 2000,
@@ -596,9 +610,12 @@ len(actions) = 61
                 "benchmark_name": "fio",
                 "benchmark_version": null,
                 "experiment": "fio_rw_2018.02.01T22.40.57",
+                "iteration_name": "rw-4KiB",
+                "iteration_number": "1",
                 "primary_metric": "iops_sec",
                 "runid": "492a697c9dc7d73d1bd92c98d3fa8b2a",
                 "runtstamp": "2018-02-01T22:41:00.276959021",
+                "sample": "sample1",
                 "uid": "benchmark_name:%benchmark_name%-controller_host:%controller_host%"
             },
             "@timestamp": 2000,
@@ -624,9 +641,12 @@ len(actions) = 61
                 "benchmark_name": "fio",
                 "benchmark_version": null,
                 "experiment": "fio_rw_2018.02.01T22.40.57",
+                "iteration_name": "rw-4KiB",
+                "iteration_number": "1",
                 "primary_metric": "iops_sec",
                 "runid": "492a697c9dc7d73d1bd92c98d3fa8b2a",
                 "runtstamp": "2018-02-01T22:41:00.276959021",
+                "sample": "sample1",
                 "uid": "benchmark_name:%benchmark_name%-controller_host:%controller_host%"
             },
             "@timestamp": 3000,
@@ -652,9 +672,12 @@ len(actions) = 61
                 "benchmark_name": "fio",
                 "benchmark_version": null,
                 "experiment": "fio_rw_2018.02.01T22.40.57",
+                "iteration_name": "rw-4KiB",
+                "iteration_number": "1",
                 "primary_metric": "iops_sec",
                 "runid": "492a697c9dc7d73d1bd92c98d3fa8b2a",
                 "runtstamp": "2018-02-01T22:41:00.276959021",
+                "sample": "sample1",
                 "uid": "benchmark_name:%benchmark_name%-controller_host:%controller_host%"
             },
             "@timestamp": 3000,
@@ -680,9 +703,12 @@ len(actions) = 61
                 "benchmark_name": "fio",
                 "benchmark_version": null,
                 "experiment": "fio_rw_2018.02.01T22.40.57",
+                "iteration_name": "rw-4KiB",
+                "iteration_number": "1",
                 "primary_metric": "iops_sec",
                 "runid": "492a697c9dc7d73d1bd92c98d3fa8b2a",
                 "runtstamp": "2018-02-01T22:41:00.276959021",
+                "sample": "sample1",
                 "uid": "benchmark_name:%benchmark_name%-controller_host:%controller_host%"
             },
             "@timestamp": 4000,
@@ -708,9 +734,12 @@ len(actions) = 61
                 "benchmark_name": "fio",
                 "benchmark_version": null,
                 "experiment": "fio_rw_2018.02.01T22.40.57",
+                "iteration_name": "rw-4KiB",
+                "iteration_number": "1",
                 "primary_metric": "iops_sec",
                 "runid": "492a697c9dc7d73d1bd92c98d3fa8b2a",
                 "runtstamp": "2018-02-01T22:41:00.276959021",
+                "sample": "sample1",
                 "uid": "benchmark_name:%benchmark_name%-controller_host:%controller_host%"
             },
             "@timestamp": 4000,
@@ -736,9 +765,12 @@ len(actions) = 61
                 "benchmark_name": "fio",
                 "benchmark_version": null,
                 "experiment": "fio_rw_2018.02.01T22.40.57",
+                "iteration_name": "rw-4KiB",
+                "iteration_number": "1",
                 "primary_metric": "iops_sec",
                 "runid": "492a697c9dc7d73d1bd92c98d3fa8b2a",
                 "runtstamp": "2018-02-01T22:41:00.276959021",
+                "sample": "sample1",
                 "uid": "benchmark_name:%benchmark_name%-controller_host:%controller_host%"
             },
             "@timestamp": 5000,
@@ -764,9 +796,12 @@ len(actions) = 61
                 "benchmark_name": "fio",
                 "benchmark_version": null,
                 "experiment": "fio_rw_2018.02.01T22.40.57",
+                "iteration_name": "rw-4KiB",
+                "iteration_number": "1",
                 "primary_metric": "iops_sec",
                 "runid": "492a697c9dc7d73d1bd92c98d3fa8b2a",
                 "runtstamp": "2018-02-01T22:41:00.276959021",
+                "sample": "sample1",
                 "uid": "benchmark_name:%benchmark_name%-controller_host:%controller_host%"
             },
             "@timestamp": 5000,
@@ -792,9 +827,12 @@ len(actions) = 61
                 "benchmark_name": "fio",
                 "benchmark_version": null,
                 "experiment": "fio_rw_2018.02.01T22.40.57",
+                "iteration_name": "rw-4KiB",
+                "iteration_number": "1",
                 "primary_metric": "iops_sec",
                 "runid": "492a697c9dc7d73d1bd92c98d3fa8b2a",
                 "runtstamp": "2018-02-01T22:41:00.276959021",
+                "sample": "sample1",
                 "uid": "benchmark_name:%benchmark_name%-controller_host:%controller_host%"
             },
             "@timestamp": 6000,
@@ -820,9 +858,12 @@ len(actions) = 61
                 "benchmark_name": "fio",
                 "benchmark_version": null,
                 "experiment": "fio_rw_2018.02.01T22.40.57",
+                "iteration_name": "rw-4KiB",
+                "iteration_number": "1",
                 "primary_metric": "iops_sec",
                 "runid": "492a697c9dc7d73d1bd92c98d3fa8b2a",
                 "runtstamp": "2018-02-01T22:41:00.276959021",
+                "sample": "sample1",
                 "uid": "benchmark_name:%benchmark_name%-controller_host:%controller_host%"
             },
             "@timestamp": 6000,
@@ -848,9 +889,12 @@ len(actions) = 61
                 "benchmark_name": "fio",
                 "benchmark_version": null,
                 "experiment": "fio_rw_2018.02.01T22.40.57",
+                "iteration_name": "rw-4KiB",
+                "iteration_number": "1",
                 "primary_metric": "iops_sec",
                 "runid": "492a697c9dc7d73d1bd92c98d3fa8b2a",
                 "runtstamp": "2018-02-01T22:41:00.276959021",
+                "sample": "sample1",
                 "uid": "benchmark_name:%benchmark_name%-controller_host:%controller_host%"
             },
             "@timestamp": 7000,
@@ -876,9 +920,12 @@ len(actions) = 61
                 "benchmark_name": "fio",
                 "benchmark_version": null,
                 "experiment": "fio_rw_2018.02.01T22.40.57",
+                "iteration_name": "rw-4KiB",
+                "iteration_number": "1",
                 "primary_metric": "iops_sec",
                 "runid": "492a697c9dc7d73d1bd92c98d3fa8b2a",
                 "runtstamp": "2018-02-01T22:41:00.276959021",
+                "sample": "sample1",
                 "uid": "benchmark_name:%benchmark_name%-controller_host:%controller_host%"
             },
             "@timestamp": 7000,
@@ -904,9 +951,12 @@ len(actions) = 61
                 "benchmark_name": "fio",
                 "benchmark_version": null,
                 "experiment": "fio_rw_2018.02.01T22.40.57",
+                "iteration_name": "rw-4KiB",
+                "iteration_number": "1",
                 "primary_metric": "iops_sec",
                 "runid": "492a697c9dc7d73d1bd92c98d3fa8b2a",
                 "runtstamp": "2018-02-01T22:41:00.276959021",
+                "sample": "sample1",
                 "uid": "benchmark_name:%benchmark_name%-controller_host:%controller_host%"
             },
             "@timestamp": 8000,
