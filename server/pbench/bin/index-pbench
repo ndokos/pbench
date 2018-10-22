@@ -370,7 +370,13 @@ class ResultData(object):
 
     @staticmethod
     def expand_template(templ, d):
-        return templ
+        import re
+
+        e = re.compile("%\w*?%")
+        s = templ
+        for m in re.findall(e, s):
+            s = re.sub(e, d[m[1:-1]], s)
+        return s
 
     @staticmethod
     def make_datum_wrapper(templ):
