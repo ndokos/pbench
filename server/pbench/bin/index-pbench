@@ -292,18 +292,18 @@ class ResultData(object):
             iteration = os.path.basename(os.path.dirname(os.path.dirname(df['path'])))
             iter_number, iter_name = iteration.split('-', 1)[0:2]
 
-            try:
-                # Read it once to generate the source_id
-                with open(os.path.join(self.ptb.extracted_root, df['path']), "rb") as fp:
-                    hash_md5 = hashlib.md5()
-                    for chunk in iter(lambda: fp.read(4096), b""):
-                        hash_md5.update(chunk)
-                    source_id = hash_md5.hexdigest()
-            except Exception as e:
-                print("result-data-indexing: encountered unreadable JSON file,"
-                        " %s: %r" % (df['path'], e))
-                self.counters['unreadable_json_file'] += 1
-                continue
+            # try:
+            #     # Read it once to generate the source_id
+            #     with open(os.path.join(self.ptb.extracted_root, df['path']), "rb") as fp:
+            #         hash_md5 = hashlib.md5()
+            #         for chunk in iter(lambda: fp.read(4096), b""):
+            #             hash_md5.update(chunk)
+            #         source_id = hash_md5.hexdigest()
+            # except Exception as e:
+            #     print("result-data-indexing: encountered unreadable JSON file,"
+            #             " %s: %r" % (df['path'], e))
+            #     self.counters['unreadable_json_file'] += 1
+            #     continue
 
             try:
                 # Read it a second time to interpret it as a JSON document.
@@ -326,7 +326,7 @@ class ResultData(object):
                        "sample": sample})
             benchmark = md['benchmark_name']
             # for each file, generate a sequence of documents and yield each one
-            for ts, src in ResultData.gen_sample_sources(results, benchmark):
+            for ts, src, source_id in ResultData.gen_sample_sources(results, benchmark):
                 # each generated result is a document, accompanied by a timestamp
                 # and some metadata.
                 source = _dict_const()
@@ -412,7 +412,8 @@ class ResultData(object):
                     for res in tseries:
                         datum = datum_wrapper
                         datum.update({"datum_value": res['value']})
-                        yield res['date'], datum
+                        src_id = _make_source_id(datum)
+                        yield res['date'], datum, src_id
         if 'throughput' in results:
             # Throughput results include a throughput.Gb_sec list only
             if benchmark == "uperf":
@@ -434,7 +435,8 @@ class ResultData(object):
                     for res in tseries:
                         datum = datum_wrapper
                         datum.update({"datum_value": res['value']})
-                        yield res['date'], datum
+                        src_id = _make_source_id(datum)
+                        yield res['date'], datum, src_id
 
         return
 

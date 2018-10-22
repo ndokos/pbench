@@ -3,23 +3,12 @@ Template:  pbench-unittests.run
 Template:  pbench-unittests.tool-data-iostat
 Template:  pbench-unittests.tool-data-pidstat
 	done templates (end ts: 1970-01-01T00:00:00-UTC, duration: 0.00s, successes: 3, retries: 0)
-PATH:  uperf_uperftest_2018.02.02T20.58.00/1-tcp_rr-64B-8i/sample1/result.json
-ITER:  1-tcp_rr-64B-8i
-SAMPLE/ITER: sample1 1 tcp_rr-64B-8i
-PATH:  uperf_uperftest_2018.02.02T20.58.00/1-tcp_rr-64B-8i/result.json
-PATH:  uperf_uperftest_2018.02.02T20.58.00/2-tcp_rr-1024B-8i/sample1/result.json
-ITER:  2-tcp_rr-1024B-8i
-SAMPLE/ITER: sample1 2 tcp_rr-1024B-8i
-PATH:  uperf_uperftest_2018.02.02T20.58.00/2-tcp_rr-1024B-8i/result.json
-PATH:  uperf_uperftest_2018.02.02T20.58.00/result.json
 Index:  pbench-unittests.result-data.2018-02-02 432
 Index:  pbench-unittests.run.2018-02 47
 Index:  pbench-unittests.tool-data-iostat.2018-02-02 120
 Index:  pbench-unittests.tool-data-mpstat.2018-02-02 80
 Index:  pbench-unittests.tool-data-pidstat.2018-02-02 342
 Index:  pbench-unittests.tool-data-proc-vmstat.2018-02-02 42
-Duplicates:  432 Multiple dupes:  2
-Index dupes:  pbench-unittests.result-data.2018-02-02 2
 len(actions) = 90
 [
     {
@@ -541,7 +530,7 @@ len(actions) = 90
         "_type": "pbench-run-toc-entry"
     },
     {
-        "_id": "fe140cb556f8b1ff2ecb7928e6baca2c",
+        "_id": "a4fbed1f3756154e64eb3a5363c147b1",
         "_index": "pbench-unittests.result-data.2018-02-02",
         "_op_type": "create",
         "_source": {
@@ -578,7 +567,7 @@ len(actions) = 90
         "_type": "pbench-result-data"
     },
     {
-        "_id": "fe140cb556f8b1ff2ecb7928e6baca2c",
+        "_id": "31a7face00ec3e1d7f5d17cca54db493",
         "_index": "pbench-unittests.result-data.2018-02-02",
         "_op_type": "create",
         "_source": {
@@ -615,7 +604,7 @@ len(actions) = 90
         "_type": "pbench-result-data"
     },
     {
-        "_id": "fe140cb556f8b1ff2ecb7928e6baca2c",
+        "_id": "237f17d0851411e28e4f738b5c5d3989",
         "_index": "pbench-unittests.result-data.2018-02-02",
         "_op_type": "create",
         "_source": {
@@ -652,7 +641,7 @@ len(actions) = 90
         "_type": "pbench-result-data"
     },
     {
-        "_id": "fe140cb556f8b1ff2ecb7928e6baca2c",
+        "_id": "3b0740cbe41659b7c43fa76d23d266ba",
         "_index": "pbench-unittests.result-data.2018-02-02",
         "_op_type": "create",
         "_source": {
@@ -689,7 +678,7 @@ len(actions) = 90
         "_type": "pbench-result-data"
     },
     {
-        "_id": "fe140cb556f8b1ff2ecb7928e6baca2c",
+        "_id": "fb0230fa8b9ac17f10d2f95349370376",
         "_index": "pbench-unittests.result-data.2018-02-02",
         "_op_type": "create",
         "_source": {
@@ -726,7 +715,7 @@ len(actions) = 90
         "_type": "pbench-result-data"
     },
     {
-        "_id": "fe140cb556f8b1ff2ecb7928e6baca2c",
+        "_id": "9c03410464e42ebd457bc63c39d0d4b3",
         "_index": "pbench-unittests.result-data.2018-02-02",
         "_op_type": "create",
         "_source": {
@@ -763,7 +752,7 @@ len(actions) = 90
         "_type": "pbench-result-data"
     },
     {
-        "_id": "fe140cb556f8b1ff2ecb7928e6baca2c",
+        "_id": "e41007362411c593716be7f1fbbff63c",
         "_index": "pbench-unittests.result-data.2018-02-02",
         "_op_type": "create",
         "_source": {
@@ -800,7 +789,7 @@ len(actions) = 90
         "_type": "pbench-result-data"
     },
     {
-        "_id": "fe140cb556f8b1ff2ecb7928e6baca2c",
+        "_id": "956adee9e363a87e3a1a46236effc225",
         "_index": "pbench-unittests.result-data.2018-02-02",
         "_op_type": "create",
         "_source": {
@@ -837,7 +826,7 @@ len(actions) = 90
         "_type": "pbench-result-data"
     },
     {
-        "_id": "fe140cb556f8b1ff2ecb7928e6baca2c",
+        "_id": "242ffa4a068905d21936261c8954f55e",
         "_index": "pbench-unittests.result-data.2018-02-02",
         "_op_type": "create",
         "_source": {
@@ -874,7 +863,7 @@ len(actions) = 90
         "_type": "pbench-result-data"
     },
     {
-        "_id": "fe140cb556f8b1ff2ecb7928e6baca2c",
+        "_id": "d9999f923f7d574ce0770f4496cd766b",
         "_index": "pbench-unittests.result-data.2018-02-02",
         "_op_type": "create",
         "_source": {
@@ -911,7 +900,7 @@ len(actions) = 90
         "_type": "pbench-result-data"
     },
     {
-        "_id": "fe140cb556f8b1ff2ecb7928e6baca2c",
+        "_id": "748ecc195c412acc73ff90c49eabfa4e",
         "_index": "pbench-unittests.result-data.2018-02-02",
         "_op_type": "create",
         "_source": {
@@ -948,7 +937,7 @@ len(actions) = 90
         "_type": "pbench-result-data"
     },
     {
-        "_id": "fe140cb556f8b1ff2ecb7928e6baca2c",
+        "_id": "5004759b860bd646f547bad798e96ea3",
         "_index": "pbench-unittests.result-data.2018-02-02",
         "_op_type": "create",
         "_source": {
@@ -985,7 +974,7 @@ len(actions) = 90
         "_type": "pbench-result-data"
     },
     {
-        "_id": "fe140cb556f8b1ff2ecb7928e6baca2c",
+        "_id": "b05a8798bdc815e3d441699e1fd53495",
         "_index": "pbench-unittests.result-data.2018-02-02",
         "_op_type": "create",
         "_source": {
@@ -1022,7 +1011,7 @@ len(actions) = 90
         "_type": "pbench-result-data"
     },
     {
-        "_id": "fe140cb556f8b1ff2ecb7928e6baca2c",
+        "_id": "eab0fcbcbc91294047f5d96b4c74c5d4",
         "_index": "pbench-unittests.result-data.2018-02-02",
         "_op_type": "create",
         "_source": {
@@ -1059,7 +1048,7 @@ len(actions) = 90
         "_type": "pbench-result-data"
     },
     {
-        "_id": "fe140cb556f8b1ff2ecb7928e6baca2c",
+        "_id": "e86952602ac564fed4a448f516c62f4c",
         "_index": "pbench-unittests.result-data.2018-02-02",
         "_op_type": "create",
         "_source": {
@@ -5041,7 +5030,7 @@ len(actions) = 90
         "_type": "pbench-tool-data-proc-vmstat"
     }
 ]
-	done indexing (end ts: 1970-01-01T00:00:00-UTC, duration: 0.00s, successes: 635, duplicates: 428, failures: 0, retries: 0)
+	done indexing (end ts: 1970-01-01T00:00:00-UTC, duration: 0.00s, successes: 1063, duplicates: 0, failures: 0, retries: 0)
 --- Finished indexing for test-7.10 (status=0)
 +++ Running unit test audit
 --- Finished unit test audit (status=0)
