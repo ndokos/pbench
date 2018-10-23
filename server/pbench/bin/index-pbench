@@ -1,4 +1,4 @@
-#!/usr/bin/python3 -u
+#!/usr/bin/env python3
 # -*- mode: python -*-
 
 # prereqs:
@@ -27,7 +27,7 @@ try:
 except ImportError:
     from elasticsearch import VERSION as es_VERSION, Elasticsearch
 
-from pbench.esbulk import tstos, es_index, es_put_template
+from pbench import tstos, es_index, es_put_template
 
 
 _VERSION_ = "0.2.0.0"
@@ -319,26 +319,34 @@ class ResultData(object):
             # There is no reason for this to be an array, but it is: we
             # just pick the 0^th (and only element) as the metadata for
             # the document.
-            assert len(results['parameters']['benchmark'])
-            md = results['parameters']['benchmark'][0]
-            md.update({"iteration_name": iter_name,
-                       "iteration_number": iter_number,
-                       "sample": sample})
-            benchmark = md['benchmark_name']
-            # for each file, generate a sequence of documents and yield each one
-            for ts, src, source_id in ResultData.gen_sample_sources(results, benchmark):
-                # each generated result is a document, accompanied by a timestamp
-                # and some metadata.
-                source = _dict_const()
-                source['@metadata'] = self.run_metadata
-                source['@metadata'].update(md)
+            try:
+                md = results['parameters']['benchmark'][0]
+                md.update({"iteration_name": iter_name,
+                           "iteration_number": iter_number,
+                           "sample": sample})
+                benchmark = md['benchmark_name']
+                # for each file, generate a sequence of documents and yield each one
+                for ts, src, source_id in ResultData.gen_sample_sources(results, benchmark):
+                    # each generated result is a document, accompanied by a timestamp
+                    # and some metadata.
+                    source = _dict_const()
+                    # make a shallow copy of the run metadata dict here
+                    # so that the update will only change the copy, not
+                    # the original
+                    source['@metadata'] = self.run_metadata.copy()
+                    source['@metadata'].update(md)
 
-                # XXX ASSUMPTION: the timestamps we get from the result data are
-                # "milliseconds since epoch" and they are are *assumed* to be UTC.
-                source['@timestamp'] = ts
-                source['results'] = src
+                    # XXX ASSUMPTION: the timestamps we get from the result data are
+                    # "milliseconds since epoch" and they are are *assumed* to be UTC.
+                    source['@timestamp'] = ts
+                    source['results'] = src
 
-                yield source, source_id
+                    yield source, source_id
+            except Exception as e:
+                print("result-data-indexing: bad result data in JSON file,"
+                        " %s: %r" % (df['path'], e))
+                self.counters['bad_result_data_in_json_file'] += 1
+                continue
 
         return
 
@@ -412,9 +420,9 @@ class ResultData(object):
                 return
             for sublist in latency_sublist:
                 latency_list = results['latency'][sublist]
-                for i in range(len(latency_list)):
-                    datum_wrapper = ResultData.make_datum_wrapper(latency_list[i])
-                    tseries = latency_list[i]['timeseries']
+                for idx, latency_el in enumerate(latency_list):
+                    datum_wrapper = ResultData.make_datum_wrapper(latency_el)
+                    tseries = latency_el['timeseries']
                     for res in tseries:
                         datum = datum_wrapper
                         datum.update({"datum_value": res['value']})
@@ -435,9 +443,9 @@ class ResultData(object):
                 return
             for sublist in throughput_sublist:
                 throughput_list = results['throughput'][sublist]
-                for i in range(len(throughput_list)):
-                    datum_wrapper = ResultData.make_datum_wrapper(throughput_list[i])
-                    tseries = throughput_list[i]['timeseries']
+                for idx, xput_el in enumerate(throughput_list):
+                    datum_wrapper = ResultData.make_datum_wrapper(xput_el)
+                    tseries = xput_el['timeseries']
                     for res in tseries:
                         datum = datum_wrapper
                         datum.update({"datum_value": res['value']})
@@ -448,8 +456,9 @@ class ResultData(object):
 
     # XXX - copied from ToolData - DRY?
     def convert_timestamp(self, orig_ts):
-        # Convert the given string timestamp, assumed to be a float in
-        # milliseconds since the epoch, to the expected string timestamp format.
+        # Convert the given timestamp, assumed to be a float in
+        # milliseconds since the epoch *and* in UTC, to the expected
+        # string timestamp format.
         ts_float = float(orig_ts)/1000
         ts = datetime.utcfromtimestamp(ts_float)
         if self.start_run_ts is not None and ts < self.start_run_ts:
@@ -818,8 +827,9 @@ class ToolData(object):
                     self.handler, iteration, sample, hostpath, tool, toolgroup, ptb)
 
     def convert_timestamp(self, orig_ts):
-        # Convert the given string timestamp, assumed to be a float in
-        # milliseconds since the epoch, to the expected string timestamp format.
+        # Convert the given timestamp, assumed to be a float in
+        # milliseconds since the epoch *and* in UTC, to the expected
+        # string timestamp format.
         ts_float = float(orig_ts)/1000
         ts = datetime.utcfromtimestamp(ts_float)
         if self.start_run_ts is not None and ts < self.start_run_ts:
