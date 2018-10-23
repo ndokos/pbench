@@ -321,6 +321,30 @@ class ResultData(object):
             datafiles.append(datafile)
         return datafiles
 
+def mk_result_data_actions(ptb, options, idx_prefix, idx_patterns, opctx):
+
+    experiment = ptb.mdconf.get("pbench", "name")
+    rd = ResultData(ptb, experiment, opctx)
+    if not rd:
+        return
+    sources = rd.make_source()
+    if not sources:
+        return
+    for source, source_id in sources:
+        year, month, day = source['@timestamp'].split('T', 1)[0].split('-')[0:3]
+        action = _dict_const(
+            _op_type=_op_type,
+            _index= idx_patterns["result-data"]["template"].format(prefix=idx_prefix,
+                                                                   year=year,
+                                                                   month=month,
+                                                                   day=day),
+            _type="pbench-result-data",
+            _id=source_id,
+            _source=source
+        )
+        yield action
+    return
+
 
 ###########################################################################
 # Tool data routines
@@ -1322,30 +1346,6 @@ def mk_tool_data_actions(ptb, options, idx_prefix, idx_patterns, opctx):
                 _source=source
             )
             yield action
-    return
-
-def mk_result_data_actions(ptb, options, idx_prefix, idx_patterns, opctx):
-
-    experiment = ptb.mdconf.get("pbench", "name")
-    rd = ResultData(ptb, experiment, opctx)
-    if not rd:
-        return
-    sources = rd.make_source()
-    if not sources:
-        return
-    for source, source_id in sources:
-        year, month, day = source['@timestamp'].split('T', 1)[0].split('-')[0:3]
-        action = _dict_const(
-            _op_type=_op_type,
-            _index= idx_patterns["result-data"]["template"].format(prefix=idx_prefix,
-                                                                   year=year,
-                                                                   month=month,
-                                                                   day=day),
-            _type="pbench-result-data",
-            _id=source_id,
-            _source=source
-        )
-        yield action
     return
 
 ###########################################################################
