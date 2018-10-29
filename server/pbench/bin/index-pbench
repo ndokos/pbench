@@ -398,6 +398,9 @@ class ResultData(object):
         # make a shallow copy
         d = templ.copy()
         del d['timeseries']
+        # rename the "value" field to 'aggr_value'
+        d['aggr_value'] = d['value']
+        del d['value']
         # construct the uid from the template and the values in d
         # and replace the template with the result
         d['uid'] = ResultData.expand_template(d['uid'], d)
@@ -459,7 +462,7 @@ class ResultData(object):
                     tseries = latency_el['timeseries']
                     for res in tseries:
                         datum = datum_wrapper
-                        datum.update({"datum_value": res['value']})
+                        datum.update({"value": res['value']})
                         src_id = _make_source_id(datum)
                         yield res['date'], datum, src_id
 
@@ -492,7 +495,7 @@ class ResultData(object):
                     tseries = xput_el['timeseries']
                     for res in tseries:
                         datum = datum_wrapper
-                        datum.update({"datum_value": res['value']})
+                        datum.update({"value": res['value']})
                         src_id = _make_source_id(datum)
                         yield res['date'], datum, src_id
 
