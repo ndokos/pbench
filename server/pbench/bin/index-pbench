@@ -285,28 +285,28 @@ class ResultData(object):
 
     def _make_source_json(self):
         for df in self.json_files:
-            # temporary: skip all but the sample result.json files
-            sample = os.path.basename(os.path.dirname(df['path']))
-            if not sample.startswith('sample'):
-                continue
-            iteration = os.path.basename(os.path.dirname(os.path.dirname(df['path'])))
-            iter_number, iter_name = iteration.split('-', 1)[0:2]
+            iteration = None
+            sample = None
 
-            # try:
-            #     # Read it once to generate the source_id
-            #     with open(os.path.join(self.ptb.extracted_root, df['path']), "rb") as fp:
-            #         hash_md5 = hashlib.md5()
-            #         for chunk in iter(lambda: fp.read(4096), b""):
-            #             hash_md5.update(chunk)
-            #         source_id = hash_md5.hexdigest()
-            # except Exception as e:
-            #     print("result-data-indexing: encountered unreadable JSON file,"
-            #             " %s: %r" % (df['path'], e))
-            #     self.counters['unreadable_json_file'] += 1
-            #     continue
+            dirbasename = os.path.basename(os.path.dirname(df['path']))
+            if dirbasename.startswith('sample'):
+                # sample result.json
+                src_type = 'sample'
+                sample = dirbasename
+                iteration = os.path.basename(os.path.dirname(os.path.dirname(df['path'])))
+                iter_number, iter_name = iteration.split('-', 1)[0:2]
+            elif dirbasename != self.run_metadata['experiment']:
+                # iteration result.json
+                src_type = 'iteration'
+                iteration = os.path.basename(os.path.dirname(df['path']))
+                iter_number, iter_name = iteration.split('-', 1)[0:2]
+            else:
+                # experiment result.json - we don't handle it yet.
+                src_type = 'experiment'
+                continue
 
             try:
-                # Read it a second time to interpret it as a JSON document.
+                # Read the file and interpret it as a JSON document.
                 with open(os.path.join(self.ptb.extracted_root, df['path'])) as fp:
                     results = json.load(fp)
             except Exception as e:
@@ -321,12 +321,19 @@ class ResultData(object):
             # the document.
             try:
                 md = results['parameters']['benchmark'][0]
-                md.update({"iteration_name": iter_name,
-                           "iteration_number": iter_number,
-                           "sample": sample})
+                if sample:
+                    md.update({"iteration_name": iter_name,
+                               "iteration_number": iter_number,
+                               "sample": sample})
+                elif iteration:
+                    md.update({"iteration_name": iter_name,
+                               "iteration_number": iter_number})
+                else:
+                    pass
+
                 benchmark = md['benchmark_name']
                 # for each file, generate a sequence of documents and yield each one
-                for ts, src, source_id in ResultData.gen_sample_sources(results, benchmark):
+                for ts, src, source_id in ResultData.gen_sources(results, benchmark, src_type):
                     # each generated result is a document, accompanied by a timestamp
                     # and some metadata.
                     source = _dict_const()
@@ -397,14 +404,38 @@ class ResultData(object):
         return d
 
     @staticmethod
-    def gen_sample_sources(results, benchmark):
+    def gen_sources(results, benchmark, src_type):
+        # sample results is a dict with either two or three
+        # (top-level) entries: latency results have three entries:
+        # parameters.benchmark, latency.usec, throughput.trans_sec.
+        # throughput results have two entries: parameters.benchmark,
+        # throughput.Gb_sec.  All entries are lists, but
+        # paremeters.benchmark is a one-element list, whereas the
+        # other lists may have multiple elements, one for a cumulative
+        # entry ("all" clients/servers) and one for each pair of
+        # client/server in the experiment (at least for uperf - fio is
+        # TBD).
 
-        # sample results is a dict with either two or three (top-level) entries:
-        # latency results have three entries: parameters.benchmark, latency.usec, throughput.trans_sec.
-        # throughput results have two entries: parameters.benchmark, throughput.Gb_sec.
-        # All entries are lists, but paremeters.benchmark is a one-element list, whereas the other lists
-        # may have multiple elements, one for a cumulative entry ("all" clients/servers) and one for each
-        # pair of client/server in the experiment (at least for uperf - fio is TBD).
+        # iteration results is a dict with either two or three
+        # (top-level) entries: latency results have three entries:
+        # parameters.benchmark, latency.usec, throughput.trans_sec.
+        # throughput results have two entries: parameters.benchmark,
+        # throughput.Gb_sec.  All entries are lists, but
+        # paremeters.benchmark is a one-element list, whereas the
+        # other lists may have multiple elements, one for a cumulative
+        # entry ("all" clients/servers) and one for each pair of
+        # client/server in the experiment (at least for uperf - fio is
+        # TBD).
+
+        # Up to this point, iteration results are identical in
+        # structure to sample results, but at this level they diverge:
+        # sample data contain a timeseries list for the sample,
+        # whereas iteration data contain a samples list: each element
+        # of the list contains a timeseries list and a "value"
+        # which is the aggregation of the results in the timeseries
+        # (generally, the mean). At the iteration level, the mean is
+        # called "mean", rather than "value", but apart from that,
+        # iteration data and sample data are very similar.
 
         if 'latency' in results:
             # Latency results include a latency['usec'] list (or
@@ -417,8 +448,11 @@ class ResultData(object):
             elif benchmark == "fio":
                 latency_sublist = ['clat', 'lat', 'slat']
             else:
-                return
+                raise BadResultData
+
             for sublist in latency_sublist:
+                if src_type != 'sample':
+                    return
                 latency_list = results['latency'][sublist]
                 for idx, latency_el in enumerate(latency_list):
                     datum_wrapper = ResultData.make_datum_wrapper(latency_el)
@@ -428,20 +462,30 @@ class ResultData(object):
                         datum.update({"datum_value": res['value']})
                         src_id = _make_source_id(datum)
                         yield res['date'], datum, src_id
+
         if 'throughput' in results:
-            # Throughput results include a throughput.Gb_sec list only
+            # Throughput results include a trans_sec, Gb_sec or
+            # iops_sec list only, depending on the benchmark (uperf or
+            # fio) and the kind of iteration: latency measurements
+            # include a trans_sec throughput sublist, but throughput
+            # measurements include a GB_sec sublist (for uperf) or
+            # an iops_sec sublist (for fio).
+
             if benchmark == "uperf":
                 if 'trans_sec' in results['throughput']:
                     throughput_sublist = ['trans_sec']
                 elif 'Gb_sec' in results['throughput']:
                     throughput_sublist = ['Gb_sec']
                 else:
-                    return
+                    raise BadResultData
             elif benchmark == "fio":
                 throughput_sublist = ['iops_sec']
             else:
-                return
+                raise BadResultData
+
             for sublist in throughput_sublist:
+                if src_type != 'sample':
+                    return
                 throughput_list = results['throughput'][sublist]
                 for idx, xput_el in enumerate(throughput_list):
                     datum_wrapper = ResultData.make_datum_wrapper(xput_el)
@@ -1617,11 +1661,9 @@ def mk_tool_info(sos_d, mdconf):
     """Return a dict containing tool info (local and remote)"""
     try:
         tools_array = []
-        # from pprint import pprint; pprint(mdconf.get("tools", "hosts"))
 
         labels = _dict_const()
         for host in mdconf.get("tools", "hosts").split():
-            # from pprint import pprint; pprint(host)
             tools_info = _dict_const()
             # XXX - we should have an FQDN for the host but
             # sometimes we have only an IP address.
@@ -2021,7 +2063,11 @@ class PbenchTarBall(object):
         if sampled_prefix != self.dirname:
             # All members of the tarball should have self.dirname as its
             # prefix.
-            raise UnsupportedTarballFormat(self.tbname)
+            raise UnsupportedTarballFormat(
+                "{} - tarball member dir prefix should be \"{}\", but is \"{}\" instead\n".format(
+                    self.tbname,
+                    self.dirname,
+                    sampled_prefix))
 
         # Verify we have a metadata.log file in the tar ball before we
         # start extracting.
@@ -2029,14 +2075,18 @@ class PbenchTarBall(object):
         try:
             self.tb.getmember(member_name)
         except KeyError:
-            raise UnsupportedTarballFormat(self.tbname)
+            raise UnsupportedTarballFormat(
+                "{} - tarball is missing \"{}\"\n".format(self.tbname, member_name))
 
         # The caller of index-pbench is expected to clean up the temporary
         # directory.
         self.tb.extractall(path=tmpdir)
         self.extracted_root = tmpdir
         if not os.path.isdir(os.path.join(self.extracted_root, self.dirname)):
-            raise UnsupportedTarballFormat(self.tbname)
+            raise UnsupportedTarballFormat(
+                "{} - extracted tarball but can't get to the directory \"{}\"\n".format(
+                    self.tbname,
+                    os.path.join(self.extracted_root, self.dirname)))
         try:
             self.mdconf = PbenchTarBall.get_mdconfig(
                     os.path.join(self.extracted_root, member_name))
@@ -2203,7 +2253,7 @@ def main(options, args):
         res = 3
 
     except UnsupportedTarballFormat as e:
-        print("Unsupported Tarball Format - no metadata.log: ", e, file=sys.stderr)
+        print("Unsupported Tarball Format: ", e, file=sys.stderr)
         res = 4
 
     except BadDate as e:
