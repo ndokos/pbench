@@ -15,9 +15,6 @@ from datetime import datetime, timedelta
 from collections import Counter
 from argparse import ArgumentParser
 
-import pprint
-pp = pprint.PrettyPrinter(indent=4)
-
 try:
     from configparser import SafeConfigParser, Error as ConfigParserError, NoSectionError, NoOptionError
 except ImportError:
@@ -230,6 +227,29 @@ def es_template(es, options, INDEX_PREFIX, INDEX_VERSION, config, dbg=0):
         sys.stdout.flush()
 
 
+
+###########################################################################
+# Pbench Data abstract class - ToolData and ResultData inherit from it.
+
+class PbenchData(object):
+
+    def __init(self):
+        pass
+
+    def convert_timestamp(self, orig_ts):
+        # Convert the given timestamp, assumed to be a float in
+        # milliseconds since the epoch *and* in UTC, to the expected
+        # string timestamp format.
+        ts_float = float(orig_ts)/1000
+        ts = datetime.utcfromtimestamp(ts_float)
+        if self.start_run_ts is not None and ts < self.start_run_ts:
+            self.counters['result_ts_before_start_run_ts'] += 1
+        if self.end_run_ts is not None and ts > self.end_run_ts:
+            self.counters['result_ts_after_end_run_ts'] += 1
+        return ts.strftime("%Y-%m-%dT%H:%M:%S.%f%z")
+
+
+
 ###########################################################################
 # Benchmark result data: json files only
 #
@@ -250,7 +270,8 @@ def convert_to_float(d):
     else:
         pass
 
-class ResultData(object):
+class ResultData(PbenchData):
+
     def __init__(self, ptb, experiment, opctx):
         self.run_metadata = _dict_const([
             ("runtstamp", ptb.start_run),
@@ -259,21 +280,7 @@ class ResultData(object):
         ])
         self.ptb = ptb
 
-        # XXX - copied from ToolData - need DRY
-        try:
-            self.start_run_ts = datetime.strptime(ptb.start_run, "%Y-%m-%dT%H:%M:%S.%f")
-        except ValueError:
-            try:
-                self.start_run_ts = datetime.strptime(ptb.start_run, "%Y-%m-%dT%H:%M:%S")
-            except ValueError:
-                self.start_run_ts = None
-        try:
-            self.end_run_ts = datetime.strptime(ptb.end_run, "%Y-%m-%dT%H:%M:%S.%f")
-        except ValueError:
-            try:
-                self.end_run_ts = datetime.strptime(ptb.end_run, "%Y-%m-%dT%H:%M:%S")
-            except ValueError:
-                self.end_run_ts = None
+        self.start_run_ts, self.end_run_ts = ptb.gen_run_timestamps()
 
         self.counters = Counter()
         opctx.append(_dict_const(object="ResultData", counters=self.counters))
@@ -396,7 +403,7 @@ class ResultData(object):
         return s
 
     @staticmethod
-    def make_datum_wrapper(templ):
+    def make_datum_wrapper(mtype, units, templ):
         # make a shallow copy
         d = templ.copy()
         del d['timeseries']
@@ -406,6 +413,10 @@ class ResultData(object):
         # construct the uid from the template and the values in d
         # and replace the template with the result
         d['uid'] = ResultData.expand_template(d['uid'], d)
+
+        d['measurement_type'] = mtype
+        d['measurement_units'] = units
+
         return d
 
     @staticmethod
@@ -460,7 +471,7 @@ class ResultData(object):
                     return
                 latency_list = results['latency'][sublist]
                 for idx, latency_el in enumerate(latency_list):
-                    datum_wrapper = ResultData.make_datum_wrapper(latency_el)
+                    datum_wrapper = ResultData.make_datum_wrapper('latency', sublist, latency_el)
                     tseries = latency_el['timeseries']
                     for res in tseries:
                         datum = datum_wrapper
@@ -493,7 +504,7 @@ class ResultData(object):
                     return
                 throughput_list = results['throughput'][sublist]
                 for idx, xput_el in enumerate(throughput_list):
-                    datum_wrapper = ResultData.make_datum_wrapper(xput_el)
+                    datum_wrapper = ResultData.make_datum_wrapper('throughput', sublist, xput_el)
                     tseries = xput_el['timeseries']
                     for res in tseries:
                         datum = datum_wrapper
@@ -502,21 +513,6 @@ class ResultData(object):
                         yield res['date'], datum, src_id
 
         return
-
-    # XXX - copied from ToolData - DRY?
-    def convert_timestamp(self, orig_ts):
-        # Convert the given timestamp, assumed to be a float in
-        # milliseconds since the epoch *and* in UTC, to the expected
-        # string timestamp format.
-        ts_float = float(orig_ts)/1000
-        ts = datetime.utcfromtimestamp(ts_float)
-        if self.start_run_ts is not None and ts < self.start_run_ts:
-            self.counters['result_ts_before_start_run_ts'] += 1
-        if self.end_run_ts is not None and ts > self.end_run_ts:
-            self.counters['result_ts_after_end_run_ts'] += 1
-        return ts.strftime("%Y-%m-%dT%H:%M:%S.%f%z")
-
-
 
 def mk_result_data_actions(ptb, options, idx_prefix, idx_patterns, opctx):
 
@@ -813,7 +809,7 @@ _aliases = {
 }
 
 
-class ToolData(object):
+class ToolData(PbenchData):
     def __init__(self, ptb, experiment, iteration, sample, host, tool,
                 toolgroup, opctx):
         self.ptb = ptb
@@ -824,20 +820,9 @@ class ToolData(object):
             (iterseqno, itername) = iteration.split('-', 1)
         except ValueError:
             iterseqno = itername = iteration
-        try:
-            self.start_run_ts = datetime.strptime(ptb.start_run, "%Y-%m-%dT%H:%M:%S.%f")
-        except ValueError:
-            try:
-                self.start_run_ts = datetime.strptime(ptb.start_run, "%Y-%m-%dT%H:%M:%S")
-            except ValueError:
-                self.start_run_ts = None
-        try:
-            self.end_run_ts = datetime.strptime(ptb.end_run, "%Y-%m-%dT%H:%M:%S.%f")
-        except ValueError:
-            try:
-                self.end_run_ts = datetime.strptime(ptb.end_run, "%Y-%m-%dT%H:%M:%S")
-            except ValueError:
-                self.end_run_ts = None
+
+        self.start_run_ts, self.end_run_ts = ptb.gen_run_timestamps()
+
         self.run_metadata = _dict_const(
             runtstamp=ptb.start_run,
             runid=ptb.md5sum,
@@ -874,18 +859,6 @@ class ToolData(object):
             # about them.
             self.files = ToolData.get_files(
                     self.handler, iteration, sample, hostpath, tool, toolgroup, ptb)
-
-    def convert_timestamp(self, orig_ts):
-        # Convert the given timestamp, assumed to be a float in
-        # milliseconds since the epoch *and* in UTC, to the expected
-        # string timestamp format.
-        ts_float = float(orig_ts)/1000
-        ts = datetime.utcfromtimestamp(ts_float)
-        if self.start_run_ts is not None and ts < self.start_run_ts:
-            self.counters['tool_ts_before_start_run_ts'] += 1
-        if self.end_run_ts is not None and ts > self.end_run_ts:
-            self.counters['tool_ts_after_end_run_ts'] += 1
-        return ts.strftime("%Y-%m-%dT%H:%M:%S.%f%z")
 
     def _make_source_unified(self):
         """Create one JSON document per identifier, per timestamp from
@@ -2109,6 +2082,24 @@ class PbenchTarBall(object):
             raise BadDate(self.tbname)
         # Open the MD5 file of the tarball and read the MD5 sum from it.
         self.md5sum = open("%s.md5" % (self.tbname)).read().split()[0]
+
+    def gen_run_timestamps(self):
+        try:
+            start_run_ts = datetime.strptime(self.start_run, "%Y-%m-%dT%H:%M:%S.%f")
+        except ValueError:
+            try:
+                start_run_ts = datetime.strptime(self.start_run, "%Y-%m-%dT%H:%M:%S")
+            except ValueError:
+                start_run_ts = None
+        try:
+            end_run_ts = datetime.strptime(self.end_run, "%Y-%m-%dT%H:%M:%S.%f")
+        except ValueError:
+            try:
+                end_run_ts = datetime.strptime(self.end_run, "%Y-%m-%dT%H:%M:%S")
+            except ValueError:
+                end_run_ts = None
+
+        return start_run_ts, end_run_ts
 
     @staticmethod
     def get_mdconfig(mdf):

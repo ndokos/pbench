@@ -1286,7 +1286,7 @@ len(actions) = 87
         "_type": "pbench-run-toc-entry"
     },
     {
-        "_id": "9d62209b0ffa2baca4ca0e7897fe3f28",
+        "_id": "72f9cf42fe4128e780dd5777fd412711",
         "_index": "pbench-unittests.result-data.2016-10-06",
         "_op_type": "create",
         "_source": {
@@ -1313,6 +1313,8 @@ len(actions) = 87
                 "aggr_value": 13.7512041003199,
                 "client_hostname": "all",
                 "description": "Number of gigabits sent by client for a period of 1 second",
+                "measurement_type": "throughput",
+                "measurement_units": "Gb_sec",
                 "role": "aggregate",
                 "server_hostname": "all",
                 "server_port": "all",
@@ -1323,7 +1325,7 @@ len(actions) = 87
         "_type": "pbench-result-data"
     },
     {
-        "_id": "745151d9990428f2bffde146081469ca",
+        "_id": "02ee35475002e178595a7c9080831318",
         "_index": "pbench-unittests.result-data.2016-10-06",
         "_op_type": "create",
         "_source": {
@@ -1350,6 +1352,8 @@ len(actions) = 87
                 "aggr_value": 13.7512041003199,
                 "client_hostname": "all",
                 "description": "Number of gigabits sent by client for a period of 1 second",
+                "measurement_type": "throughput",
+                "measurement_units": "Gb_sec",
                 "role": "aggregate",
                 "server_hostname": "all",
                 "server_port": "all",
@@ -1360,7 +1364,7 @@ len(actions) = 87
         "_type": "pbench-result-data"
     },
     {
-        "_id": "05c29035fcd09ce2c9d9b3176217c7cb",
+        "_id": "0b559bc31458109c22120eec210d9a40",
         "_index": "pbench-unittests.result-data.2016-10-06",
         "_op_type": "create",
         "_source": {
@@ -1387,6 +1391,8 @@ len(actions) = 87
                 "aggr_value": 13.7512041003199,
                 "client_hostname": "all",
                 "description": "Number of gigabits sent by client for a period of 1 second",
+                "measurement_type": "throughput",
+                "measurement_units": "Gb_sec",
                 "role": "aggregate",
                 "server_hostname": "all",
                 "server_port": "all",
@@ -1397,7 +1403,7 @@ len(actions) = 87
         "_type": "pbench-result-data"
     },
     {
-        "_id": "f05f7fe330962fc4ab7d24d4a70744d9",
+        "_id": "280690782eb81a1028e9ca9dadeb442a",
         "_index": "pbench-unittests.result-data.2016-10-06",
         "_op_type": "create",
         "_source": {
@@ -1424,6 +1430,8 @@ len(actions) = 87
                 "aggr_value": 13.7512041003199,
                 "client_hostname": "all",
                 "description": "Number of gigabits sent by client for a period of 1 second",
+                "measurement_type": "throughput",
+                "measurement_units": "Gb_sec",
                 "role": "aggregate",
                 "server_hostname": "all",
                 "server_port": "all",
@@ -1434,7 +1442,7 @@ len(actions) = 87
         "_type": "pbench-result-data"
     },
     {
-        "_id": "89117b5d7b5015ff063941f4a719d5f6",
+        "_id": "4bbf4a13ea7b17343d21ec7ad7d82704",
         "_index": "pbench-unittests.result-data.2016-10-06",
         "_op_type": "create",
         "_source": {
@@ -1461,6 +1469,8 @@ len(actions) = 87
                 "aggr_value": 13.7512041003199,
                 "client_hostname": "all",
                 "description": "Number of gigabits sent by client for a period of 1 second",
+                "measurement_type": "throughput",
+                "measurement_units": "Gb_sec",
                 "role": "aggregate",
                 "server_hostname": "all",
                 "server_port": "all",
@@ -1471,7 +1481,7 @@ len(actions) = 87
         "_type": "pbench-result-data"
     },
     {
-        "_id": "ece45886605e753cb40e4dbafc929548",
+        "_id": "ade1b53dd266ac22faf353f92cf3799f",
         "_index": "pbench-unittests.result-data.2016-10-06",
         "_op_type": "create",
         "_source": {
@@ -1498,6 +1508,8 @@ len(actions) = 87
                 "aggr_value": 13.7512041003199,
                 "client_hostname": "all",
                 "description": "Number of gigabits sent by client for a period of 1 second",
+                "measurement_type": "throughput",
+                "measurement_units": "Gb_sec",
                 "role": "aggregate",
                 "server_hostname": "all",
                 "server_port": "all",
@@ -1508,7 +1520,7 @@ len(actions) = 87
         "_type": "pbench-result-data"
     },
     {
-        "_id": "91b14959e829287103afb17f4d957b0a",
+        "_id": "2b50a0749e07e5283998eb3b73889374",
         "_index": "pbench-unittests.result-data.2016-10-06",
         "_op_type": "create",
         "_source": {
@@ -1535,6 +1547,8 @@ len(actions) = 87
                 "aggr_value": 13.7512041003199,
                 "client_hostname": "all",
                 "description": "Number of gigabits sent by client for a period of 1 second",
+                "measurement_type": "throughput",
+                "measurement_units": "Gb_sec",
                 "role": "aggregate",
                 "server_hostname": "all",
                 "server_port": "all",
@@ -1545,7 +1559,7 @@ len(actions) = 87
         "_type": "pbench-result-data"
     },
     {
-        "_id": "40d718a83bbab0d279cbf42aba4aefe8",
+        "_id": "ddd4555df87fddd09674064d9ab0c77c",
         "_index": "pbench-unittests.result-data.2016-10-06",
         "_op_type": "create",
         "_source": {
@@ -1572,6 +1586,8 @@ len(actions) = 87
                 "aggr_value": 13.7512041003199,
                 "client_hostname": "all",
                 "description": "Number of gigabits sent by client for a period of 1 second",
+                "measurement_type": "throughput",
+                "measurement_units": "Gb_sec",
                 "role": "aggregate",
                 "server_hostname": "all",
                 "server_port": "all",
@@ -1582,7 +1598,7 @@ len(actions) = 87
         "_type": "pbench-result-data"
     },
     {
-        "_id": "a56381ff25e5bf44c69e005367b12852",
+        "_id": "abc740f4a43bffe933e32e80eb669f5f",
         "_index": "pbench-unittests.result-data.2016-10-06",
         "_op_type": "create",
         "_source": {
@@ -1609,6 +1625,8 @@ len(actions) = 87
                 "aggr_value": 13.7512041003199,
                 "client_hostname": "all",
                 "description": "Number of gigabits sent by client for a period of 1 second",
+                "measurement_type": "throughput",
+                "measurement_units": "Gb_sec",
                 "role": "aggregate",
                 "server_hostname": "all",
                 "server_port": "all",
@@ -1619,7 +1637,7 @@ len(actions) = 87
         "_type": "pbench-result-data"
     },
     {
-        "_id": "f0d8ab5723d345a2dd75668000b87814",
+        "_id": "8be97a0b30dc4852ddb0f242e2e46afc",
         "_index": "pbench-unittests.result-data.2016-10-06",
         "_op_type": "create",
         "_source": {
@@ -1646,6 +1664,8 @@ len(actions) = 87
                 "aggr_value": 13.7512041003199,
                 "client_hostname": "all",
                 "description": "Number of gigabits sent by client for a period of 1 second",
+                "measurement_type": "throughput",
+                "measurement_units": "Gb_sec",
                 "role": "aggregate",
                 "server_hostname": "all",
                 "server_port": "all",
@@ -1656,7 +1676,7 @@ len(actions) = 87
         "_type": "pbench-result-data"
     },
     {
-        "_id": "66d78efbf4afb29f1b73a911eca43435",
+        "_id": "4387e03b6cc19e16b02544a0217fe2d7",
         "_index": "pbench-unittests.result-data.2016-10-06",
         "_op_type": "create",
         "_source": {
@@ -1683,6 +1703,8 @@ len(actions) = 87
                 "aggr_value": 13.7512041003199,
                 "client_hostname": "all",
                 "description": "Number of gigabits sent by client for a period of 1 second",
+                "measurement_type": "throughput",
+                "measurement_units": "Gb_sec",
                 "role": "aggregate",
                 "server_hostname": "all",
                 "server_port": "all",
@@ -1693,7 +1715,7 @@ len(actions) = 87
         "_type": "pbench-result-data"
     },
     {
-        "_id": "50fc92034a220afede6024f13616e362",
+        "_id": "41b24257e24c02b220974aa0f608cb11",
         "_index": "pbench-unittests.result-data.2016-10-06",
         "_op_type": "create",
         "_source": {
@@ -1720,6 +1742,8 @@ len(actions) = 87
                 "aggr_value": 13.7512041003199,
                 "client_hostname": "all",
                 "description": "Number of gigabits sent by client for a period of 1 second",
+                "measurement_type": "throughput",
+                "measurement_units": "Gb_sec",
                 "role": "aggregate",
                 "server_hostname": "all",
                 "server_port": "all",
@@ -1730,7 +1754,7 @@ len(actions) = 87
         "_type": "pbench-result-data"
     },
     {
-        "_id": "f943ef06f3be992a70bbba4166d09c84",
+        "_id": "50e6504b03b317c6f5465f877de50fba",
         "_index": "pbench-unittests.result-data.2016-10-06",
         "_op_type": "create",
         "_source": {
@@ -1757,6 +1781,8 @@ len(actions) = 87
                 "aggr_value": 13.7512041003199,
                 "client_hostname": "all",
                 "description": "Number of gigabits sent by client for a period of 1 second",
+                "measurement_type": "throughput",
+                "measurement_units": "Gb_sec",
                 "role": "aggregate",
                 "server_hostname": "all",
                 "server_port": "all",
@@ -1767,7 +1793,7 @@ len(actions) = 87
         "_type": "pbench-result-data"
     },
     {
-        "_id": "3d3291f440a5846d50d7ae56e0631cef",
+        "_id": "635850fbb1cd935f8783a45f7194f82d",
         "_index": "pbench-unittests.result-data.2016-10-06",
         "_op_type": "create",
         "_source": {
@@ -1794,6 +1820,8 @@ len(actions) = 87
                 "aggr_value": 13.7512041003199,
                 "client_hostname": "all",
                 "description": "Number of gigabits sent by client for a period of 1 second",
+                "measurement_type": "throughput",
+                "measurement_units": "Gb_sec",
                 "role": "aggregate",
                 "server_hostname": "all",
                 "server_port": "all",
@@ -1804,7 +1832,7 @@ len(actions) = 87
         "_type": "pbench-result-data"
     },
     {
-        "_id": "c3378944d0bcf7e7d7e13de457576a45",
+        "_id": "91dc74e6920722190f203b866fcaf551",
         "_index": "pbench-unittests.result-data.2016-10-06",
         "_op_type": "create",
         "_source": {
@@ -1831,6 +1859,8 @@ len(actions) = 87
                 "aggr_value": 13.7512041003199,
                 "client_hostname": "all",
                 "description": "Number of gigabits sent by client for a period of 1 second",
+                "measurement_type": "throughput",
+                "measurement_units": "Gb_sec",
                 "role": "aggregate",
                 "server_hostname": "all",
                 "server_port": "all",

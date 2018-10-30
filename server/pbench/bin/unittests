@@ -392,7 +392,7 @@ declare -A cmds=(
     # "impossible" - extract tarball into tmpdir but resulting dir does not exist -
     # will probably require sleight-of-hand to trigger.
     # [test-7.2.2]="_run_index"
-    
+
     [test-7.3]="_run_index"
     [test-7.4]="_run_index"
     [test-7.5]="_run_index"
@@ -420,7 +420,7 @@ declare -A cmds=(
     # truncated uperf results data so we can do
     # a complete comparison of input to output.
     # uperf latency and throughput (usec and trans_sec) results
-    # TBD
+    [test-7.16]="_run_index"
 
     # activation test
     [test-8]="_run_activate"
