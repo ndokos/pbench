@@ -227,14 +227,13 @@ def es_template(es, options, INDEX_PREFIX, INDEX_VERSION, config, dbg=0):
         sys.stdout.flush()
 
 
-
-###########################################################################
-# Pbench Data abstract class - ToolData and ResultData inherit from it.
-
 class PbenchData(object):
-
-    def __init(self):
-        pass
+    """
+    Pbench Data abstract class - ToolData and ResultData inherit from it.
+    """
+    def __init__(self, start, end):
+        self.start_run_ts = start
+        self.end_run_ts = end
 
     def convert_timestamp(self, orig_ts):
         # Convert the given timestamp, assumed to be a float in
@@ -247,7 +246,6 @@ class PbenchData(object):
         if self.end_run_ts is not None and ts > self.end_run_ts:
             self.counters['result_ts_after_end_run_ts'] += 1
         return ts.strftime("%Y-%m-%dT%H:%M:%S.%f%z")
-
 
 
 ###########################################################################
@@ -273,15 +271,14 @@ def convert_to_float(d):
 class ResultData(PbenchData):
 
     def __init__(self, ptb, experiment, opctx):
+        start, end = ptb.gen_run_timestamps()
+        super(ResultData, self).__init__(start, end)
         self.run_metadata = _dict_const([
             ("runtstamp", ptb.start_run),
             ("runid", ptb.md5sum),
             ("experiment", experiment)
         ])
         self.ptb = ptb
-
-        self.start_run_ts, self.end_run_ts = ptb.gen_run_timestamps()
-
         self.counters = Counter()
         opctx.append(_dict_const(object="ResultData", counters=self.counters))
         self.json_files = None
@@ -812,16 +809,17 @@ _aliases = {
 class ToolData(PbenchData):
     def __init__(self, ptb, experiment, iteration, sample, host, tool,
                 toolgroup, opctx):
+        start, end = ptb.gen_run_timestamps()
+        super(ToolData, self).__init__(start, end)
         self.ptb = ptb
         self.toolname = tool
         self.counters = Counter()
         opctx.append(_dict_const(object="ToolData-%s" % (tool), counters=self.counters))
+
         try:
             (iterseqno, itername) = iteration.split('-', 1)
         except ValueError:
             iterseqno = itername = iteration
-
-        self.start_run_ts, self.end_run_ts = ptb.gen_run_timestamps()
 
         self.run_metadata = _dict_const(
             runtstamp=ptb.start_run,
