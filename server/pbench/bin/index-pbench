@@ -387,9 +387,11 @@ class ResultData(object):
     def expand_template(templ, d):
         import re
 
+        # match %...% patterns non-greedily.
         e = re.compile("%\w*?%")
         s = templ
         for m in re.findall(e, s):
+            # m[1:-1] strips the initial and final % signs from the match.
             s = re.sub(e, d[m[1:-1]], s)
         return s
 
@@ -1959,7 +1961,7 @@ def mk_run_metadata(mdconf, md5sum, dirname):
         d['tarball-toc-prefix'] = dirname
         del d['rpm-version']
     except KeyError as e:
-        print("Tarball: %s - %s is missing in metadata.log\n" % (dirname, e), file=sys.stdout)
+        print("Tarball: %s - %s is missing in metadata.log." % (dirname, e), file=sys.stdout)
         d = _dict_const()
     return d
 
@@ -2067,7 +2069,7 @@ class PbenchTarBall(object):
             # All members of the tarball should have self.dirname as its
             # prefix.
             raise UnsupportedTarballFormat(
-                "{} - tarball member dir prefix should be \"{}\", but is \"{}\" instead\n".format(
+                "{} - tarball member dir prefix should be \"{}\", but is \"{}\" instead.".format(
                     self.tbname,
                     self.dirname,
                     sampled_prefix))
@@ -2079,7 +2081,7 @@ class PbenchTarBall(object):
             self.tb.getmember(member_name)
         except KeyError:
             raise UnsupportedTarballFormat(
-                "{} - tarball is missing \"{}\"\n".format(self.tbname, member_name))
+                "{} - tarball is missing \"{}\".".format(self.tbname, member_name))
 
         # The caller of index-pbench is expected to clean up the temporary
         # directory.
@@ -2087,7 +2089,7 @@ class PbenchTarBall(object):
         self.extracted_root = tmpdir
         if not os.path.isdir(os.path.join(self.extracted_root, self.dirname)):
             raise UnsupportedTarballFormat(
-                "{} - extracted tarball but can't get to the directory \"{}\"\n".format(
+                "{} - extracted tarball but can't get to the directory \"{}\".".format(
                     self.tbname,
                     os.path.join(self.extracted_root, self.dirname)))
         try:
