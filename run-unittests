@@ -3,13 +3,13 @@
 dir=$(dirname $0)
 let sts=0
 
-$dir/agent/bench-scripts/unittests > /var/tmp/agent.bench-scripts.out 2>&1 < /dev/null &
+(time $dir/agent/bench-scripts/unittests) > /var/tmp/agent.bench-scripts.out 2>&1 < /dev/null &
 bpid=$!
-$dir/agent/tool-scripts/postprocess/unittests > /var/tmp/agent.tool-scripts.pp.out 2>&1 < /dev/null &
+(time $dir/agent/tool-scripts/postprocess/unittests) > /var/tmp/agent.tool-scripts.pp.out 2>&1 < /dev/null &
 tpid=$!
-$dir/agent/util-scripts/unittests > /var/tmp/agent.util-scripts.out 2>&1 < /dev/null &
+(time $dir/agent/util-scripts/unittests) > /var/tmp/agent.util-scripts.out 2>&1 < /dev/null &
 upid=$!
-$dir/server/bin/unittests --parallel > /var/tmp/server.out 2>&1 < /dev/null &
+(time $dir/server/bin/unittests --parallel) > /var/tmp/server.out 2>&1 < /dev/null &
 spid=$!
 
 echo "+++ Agent bench-scripts Unit Tests +++"
