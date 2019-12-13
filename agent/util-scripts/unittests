@@ -298,6 +298,7 @@ declare -A tools=(
     [test-48]="test-add-metalog-%-option"
     [test-49]="pbench-copy-results"
     [test-50]="test-pbench-metadata-log"
+    [test-51]="fail"
 )
 
 declare -A options=(
